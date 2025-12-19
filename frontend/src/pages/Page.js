@@ -186,7 +186,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
                       <React.Fragment key={iIdx}>
                         {/* Main Item */}
                         <tr>
-                          <td>{`${bIdx + 1}`}</td>
+                          <td>{`${iIdx + 1}`}</td>
                           <td>{item.description || ""}</td>
                           <td>{item.itemFinish || item.finish || "-"}</td>
                           <td>
@@ -324,21 +324,21 @@ const Page = forwardRef(({ data = {} }, ref) => {
             } else if (cat.includes("wardrobe")) {
               return (
                 <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                  1 soft close drawer is included in 35 square feet area (For extra drawer Rs 4200 will be charged).<br/>
+                  1. Soft close drawer is included in 35 square feet area (For extra drawer Rs 4200 will be charged).<br/>
 
-                  2 No any accessory is included in above cost and Accessories(if required) will be charged Rs. 7500/onward.<br/>
+                  2. No any accessory is included in above cost and Accessories(if required) will be charged Rs. 7500/onward.<br/>
 
-                  3 Sensor light will be charged @ Rs 7500/-each.<br/>
+                  3. Sensor light will be charged @ Rs 7500/-each.<br/>
 
-                  4 There is no any kind of warranty of lights.<br/>
+                  4. There is no any kind of warranty of lights.<br/>
 
-                  5 Special Hanging rod (Imported) Rs. 3800/-will be charged.<br/>
+                  5. Special Hanging rod (Imported) Rs. 3800/-will be charged.<br/>
 
-                  6 Hinges will be soft close.<br/>
+                  6. Hinges will be soft close.<br/>
 
-                  7 In sliding wardrobe, sliding fitting cost will be extra as per actual.<br/>
+                  7. In sliding wardrobe, sliding fitting cost will be extra as per actual.<br/>
 
-                  8 Fabric, leather & stone will be provided by the client.<br/>
+                  8. Fabric, leather & stone will be provided by the client.<br/>
                 </p>
               );
             } else {
