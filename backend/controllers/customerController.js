@@ -81,3 +81,60 @@ export const addCustomer = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// ✅ Update customer
+export const updateCustomer = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let { name, gstNumber, building, floor, nearestLandmark, address, mobileNumber } = req.body;
+
+    // ✅ Trim values safely
+    name = name ? name.trim() : undefined;
+    mobileNumber = mobileNumber ? mobileNumber.trim() : null;
+    if (mobileNumber === "") mobileNumber = null;
+
+    // ✅ Allow empty mobile number, validate only if provided
+    if (mobileNumber && !/^\d{10}$/.test(mobileNumber)) {
+      return res.status(400).json({ message: "Mobile number must be 10 digits if provided" });
+    }
+
+    // ✅ Validate GST (optional but must be 15 alphanumeric)
+    if (gstNumber && !/^[A-Z0-9]{15}$/i.test(gstNumber)) {
+      return res.status(400).json({ message: "GST number must be 15 alphanumeric characters" });
+    }
+
+    // Check for duplicates (excluding current customer)
+    if (mobileNumber) {
+      const duplicate = await Customer.findOne({ mobileNumber, _id: { $ne: id } });
+      if (duplicate) {
+        return res.status(400).json({ message: "Mobile number already exists" });
+      }
+    }
+
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      id,
+      {
+        name,
+        gstNumber,
+        building,
+        floor,
+        nearestLandmark,
+        address,
+        mobileNumber,
+      },
+      { new: true }
+    );
+
+    if (!updatedCustomer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.json(updatedCustomer);
+  } catch (error) {
+    console.error(error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Duplicate entry detected" });
+    }
+    res.status(500).json({ message: "Server error" });
+  }
+};

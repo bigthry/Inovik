@@ -5,7 +5,7 @@ import logo from "./logo.png";
 const Page = forwardRef(({ data = {} }, ref) => {
   console.log("=== PAGE COMPONENT DEBUG ===");
   console.log("Page component received data:", data);
-  
+
   const {
     quotationNumber = "___________",
     date = "__________________",
@@ -18,7 +18,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
   const d = new Date(date);
   const isValidDate = !isNaN(d.getTime());
   const baseDate = isValidDate ? d : new Date();
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const year = baseDate.getFullYear();
   const month = months[baseDate.getMonth()];
   const validTillDate = new Date(baseDate);
@@ -89,16 +89,17 @@ const Page = forwardRef(({ data = {} }, ref) => {
       <div className="header-section">
         <div className="logo-container">
           <img src={logo} alt="Company Logo" className="company-logo" />
-          
-          {(() => { const cat = String(customerData.category || "").toLowerCase(); 
-            if (cat.includes("modular kitchen")) return <p className="category-box">Kitchen</p>; 
-            if (cat.includes("wardrobe")) return <p className="category-box">Wardrobe</p>; 
+
+          {(() => {
+            const cat = String(customerData.category || "").toLowerCase();
+            if (cat.includes("modular sensitive") || cat.includes("modular furniture")) return <p className="category-box">Modular Furniture</p>;
+            if (cat.includes("modular kitchen")) return <p className="category-box">Kitchen</p>;
+            if (cat.includes("wardrobe")) return <p className="category-box">Wardrobe</p>;
             // console.log("🧾 customerData.category =", customerData.category); 
             return null;
-            })()}
-            
+          })()}
         </div>
-        
+
         <div className="address-container">
           <b>
             <p>{settings?.legalName || "MANAN RESOURCES"}</p>
@@ -139,22 +140,22 @@ const Page = forwardRef(({ data = {} }, ref) => {
           {billingAddress.nearestLandmark || shippingAddress.nearestLandmark ? <p>Landmark: {billingAddress.nearestLandmark || shippingAddress.nearestLandmark}</p> : null}
         </div>
       </div>
-            
+
       {/* INTRO SECTION */}
       <section className="intro-section">
         <p>Dear <b>{customer || ""}</b>,</p>
         <p>Greetings of the day!</p>
         <p>
-          Based on your enquiry for <b>{customerData.category || ""}</b>, received on <b>{d.getDate()} {month} {year}</b>, 
+          Based on your enquiry for <b>{customerData.remarks || ""}</b>, received on <b>{d.getDate()} {month} {year}</b>,
           we are pleased to raise a proposal with reference number <b>{quotationNumber}</b>. Please check the details and revert back to us as earliest possible.
         </p>
         <p>For clarifications or queries, please feel free to contact your relationship manager at the details above.</p>
         <p>This proposal is valid for <b>15</b> days, i.e., till <b>{validTill}</b>.</p>
       </section>
 
-      {customerData.remarks && customerData.remarks.trim() && (
+      {/* {customerData.remarks && customerData.remarks.trim() && (
         <p style={{ marginTop: "8px", marginBottom: "8px" }}>Remarks: {customerData.remarks}</p>
-      )}
+      )} */}
 
       {/* BLOCKS SECTION */}
       <section className="block-section">
@@ -305,50 +306,51 @@ const Page = forwardRef(({ data = {} }, ref) => {
               exactMatch: categoryValue === "Modular Kitchen",
               fullCustomerData: customerData
             });
-            
+
             // Always prioritize category-specific notes if category is set
             // Check for "modular kitchen" - both words together or separately
             // More explicit checks to ensure Modular Kitchen is detected
-            const isModularKitchen = cat === "modular kitchen" || 
-                                    cat.includes("modular kitchen") || 
-                                    (cat.includes("modular") && cat.includes("kitchen")) ||
-                                    categoryValue === "Modular Kitchen" ||
-                                    categoryValue === "modular kitchen";
-            
+            const isModularKitchen = cat === "modular kitchen" ||
+              cat.includes("modular kitchen") ||
+              (cat.includes("modular") && cat.includes("kitchen")) ||
+              categoryValue === "Modular Kitchen" ||
+              categoryValue === "modular kitchen";
+
             if (isModularKitchen || cat.includes("kitchen")) {
               return (
                 <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                  1. All civil, Plumbing & Electrical Work will be done by client him/herself.<br/>
+                  1. All civil, Plumbing & Electrical Work will be done by client him/herself.<br />
                 </p>
               );
-            } else if (cat.includes("wardrobe")) {
+            } else if (cat.includes("wardrobe") || cat.includes("modular furniture")) {
               return (
                 <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                  1. Soft close drawer is included in 35 square feet area (For extra drawer Rs 4200 will be charged).<br/>
+                  1. Soft close drawer is included in 35 square feet area (For extra drawer Rs 4200 will be charged).<br />
 
-                  2. No any accessory is included in above cost and Accessories(if required) will be charged Rs. 7500/onward.<br/>
+                  2. No any accessory is included in above cost and Accessories(if required) will be charged Rs. 7500/onward.<br />
 
-                  3. Sensor light will be charged @ Rs 7500/-each.<br/>
+                  3. Sensor light will be charged @ Rs 7500/-each.<br />
 
-                  4. There is no any kind of warranty of lights.<br/>
+                  4. There is no any kind of warranty of lights.<br />
 
-                  5. Special Hanging rod (Imported) Rs. 3800/-will be charged.<br/>
+                  5. Special Hanging rod (Imported) Rs. 3800/-will be charged.<br />
 
-                  6. Hinges will be soft close.<br/>
+                  6. Hinges will be soft close.<br />
 
-                  7. In sliding wardrobe, sliding fitting cost will be extra as per actual.<br/>
+                  7. In sliding wardrobe, sliding fitting cost will be extra as per actual.<br />
 
-                  8. Fabric, leather & stone will be provided by the client.<br/>
+                  8. Fabric, leather & stone will be provided by the client.<br />
                 </p>
               );
-            } else {
+            }
+            else {
               // Default notes if category is not specified
               return settings && settings.terms && settings.terms.trim() ? (
                 <p style={{ whiteSpace: "pre-line", margin: 0 }}>
                   {settings.terms.split('\n').map((line, index) => (
                     <React.Fragment key={index}>
                       {line}
-                      <br/>
+                      <br />
                     </React.Fragment>
                   ))}
                 </p>
@@ -367,35 +369,35 @@ const Page = forwardRef(({ data = {} }, ref) => {
         <div className="terms-box">
           <h4>Terms and Conditions</h4>
           <div className="terms-content">
-            1. All Purchase Order, Cheque, and Draft to be made in the favour of <b>"Manan Resources".</b><br/>
+            1. All Purchase Order, Cheque, and Draft to be made in the favour of <b>"Manan Resources".</b><br />
 
-            2. 60% advance at the time of placing the order, 35% payment before dispatch of goods, 5% after installation.<br/>
+            2. 60% advance at the time of placing the order, 35% payment before dispatch of goods, 5% after installation.<br />
 
-            3. Delivery will be within <b>4 to 6 week days</b> after confirmation of the order and final measurement done, with advance, subject to availability of raw material.<br/>
+            3. Delivery will be within <b>4 to 6 week days</b> after confirmation of the order and final measurement done, with advance, subject to availability of raw material.<br />
 
-            4. Delivery is subject to realization of cheque/DD or Cash.<br/>
+            4. Delivery is subject to realization of cheque/DD or Cash.<br />
 
-            5. Goods once sold can't be returned or exchanged.<br/>
+            5. Goods once sold can't be returned or exchanged.<br />
 
-            6. Cancellation of confirmed order is not allowed and advance is non-refundable.<br/>
+            6. Cancellation of confirmed order is not allowed and advance is non-refundable.<br />
 
-            7. For delivery on or above five floors, the service lift shall have to be organized by the client.<br/>
+            7. For delivery on or above five floors, the service lift shall have to be organized by the client.<br />
 
-            8. The Lighting part and Glass is not covered under any kind of warranty.<br/>
+            8. The Lighting part and Glass is not covered under any kind of warranty.<br />
 
-            9. Any paper regarding transportation, if required, to be provided by the client.<br/>
+            9. Any paper regarding transportation, if required, to be provided by the client.<br />
 
-            10. Taxes and transportation are extra as Applicable.<br/>
+            10. Taxes and transportation are extra as Applicable.<br />
 
-            11. Prices are valid for 15 days.<br/>
+            11. Prices are valid for 15 days.<br />
 
-            12. All disputes will be subjected to Ambala Junsdiction only.<br/>
+            12. All disputes will be subjected to Ambala Junsdiction only.<br />
 
-            13. There will be no guarantee of broken tems.<br/>
+            13. There will be no guarantee of broken tems.<br />
 
-            14. There will be 5 ears of warranty on all products.<br/>
+            14. There will be 5 ears of warranty on all products.<br />
 
-            15. 2 Visits are free after that chargeable.<br/>
+            15. 2 Visits are free after that chargeable.<br />
           </div>
         </div>
 
@@ -465,9 +467,9 @@ const Page = forwardRef(({ data = {} }, ref) => {
               <td>
                 <h1>Company Details</h1>
                 <p>Company Name: Manan Resources</p>
-                <p>Bank Details: IDFC FIRST BANK LTD, A/c No. 10205212942</p>
-                <p>IFSC Code: IDFB0021392</p>
-                <p>Branch Name: Ambala Cantt. Branch</p>
+                <p>Bank Details: HDFC BANK LTD, A/c No. 50200055970953</p>
+                <p>IFSC Code: HDFC0000654</p>
+                <p>Branch Name: Hisar Road, Near Bal Bhawan, Ambala City</p>
               </td>
 
               <td>
@@ -489,7 +491,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
           </tbody>
         </table>
       </div>
-    </div>   
+    </div>
   );
 });
 

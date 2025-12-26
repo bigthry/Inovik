@@ -35,7 +35,7 @@ export const generatePDF = async (req, res) => {
 
     // Wait for content to fully render and fonts to load
     await page.evaluateHandle(() => document.fonts.ready);
-    await page.waitForTimeout(1000); // Give more time for rendering
+    await new Promise(r => setTimeout(r, 1000)); // Give more time for rendering
 
     // Generate PDF with proper settings
     const pdfBuffer = await page.pdf({

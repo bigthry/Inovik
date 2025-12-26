@@ -275,6 +275,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
           <select value={category} onChange={e => setCategory(e.target.value)} disabled={readOnly}>
             <option value="Modular Kitchen">Modular Kitchen</option>
             <option value="Wardrobe">Wardrobe</option>
+            <option value="Modular Furniture">Modular Furniture</option>
           </select>
         </div>
         <div className="form-group">
