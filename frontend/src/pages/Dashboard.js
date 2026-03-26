@@ -7,12 +7,60 @@ import "./Dashboard.css";
 const Dashboard = ({ onLogout }) => {
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const { popups, showError, hidePopup } = usePopupManager();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchQuotations();
   }, []);
+
+ const fetchSearchedQuotations = async (query) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showError("Authentication required. Please login again.");
+      setTimeout(() => navigate("/"), 2000);
+      return;
+    }
+
+    const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/quotations/search?query=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to fetch quotations");
+    }
+
+    setQuotations(data.quotations || []);
+  } catch (error) {
+    console.error("Error fetching quotations:", error);
+    showError("Error loading quotations: " + error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  const delay = setTimeout(() => {
+    if (!searchQuery.trim()) {
+      fetchQuotations();   // fallback when cleared
+    } else {
+      fetchSearchedQuotations(searchQuery);
+    }
+  }, 200);
+
+  return () => clearTimeout(delay);
+}, [searchQuery]);
 
   const fetchQuotations = async () => {
     try {
@@ -24,7 +72,7 @@ const Dashboard = ({ onLogout }) => {
         }, 2000);
         return;
       }
-      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
+      const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${API_BASE_URL}/api/quotations`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -55,6 +103,11 @@ const Dashboard = ({ onLogout }) => {
 
   const handleNewQuotation = () => {
     navigate("/quotation/new");
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    fetchQuotations();
   };
 
   const getStatusColor = (status) => {
@@ -100,6 +153,27 @@ const Dashboard = ({ onLogout }) => {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="search-container">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search by customer name"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && fetchSearchedQuotations()}
+          style={{ color: "#111827", backgroundColor: "#ffffff" }}
+        />
+        <button className="action-btn primary" onClick={fetchSearchedQuotations}>
+          Search
+        </button>
+        {searchQuery && (
+          <button className="action-btn secondary" onClick={handleClearSearch}>
+            Clear
+          </button>
+        )}
+      </div>
+
       {/* Table Container */}
       <div className="dashboard-content">
         {loading ? (
@@ -135,9 +209,7 @@ const Dashboard = ({ onLogout }) => {
                       #{quotation.quotationNumber || "N/A"}
                     </td>
                     <td>{formatDate(quotation.date)}</td>
-                    <td>
-                      {quotation.customer?.name || "No customer"}
-                    </td>
+                    <td>{quotation.customer?.name || "No customer"}</td>
                     <td>
                       <span
                         className="status-badge"
@@ -174,4 +246,3 @@ const Dashboard = ({ onLogout }) => {
 };
 
 export default Dashboard;
-

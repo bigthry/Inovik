@@ -577,7 +577,7 @@ const Quotation = ({ onLogout, mode }) => {
 
             <div className="header-field">
               <label># Dated:</label>
-              <input type="date" value={date} readOnly />
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
 
             <div className="header-field">

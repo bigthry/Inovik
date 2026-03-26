@@ -395,7 +395,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
 
             13. There will be no guarantee of broken tems.<br />
 
-            14. There will be 5 ears of warranty on all products.<br />
+            14. There will be 5 years of warranty on all products.<br />
 
             15. 2 Visits are free after that chargeable.<br />
           </div>

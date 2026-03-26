@@ -121,18 +121,75 @@ export const getAllQuotations = async (req, res) => {
   }
 };
 
-/**
- * 🔍 Get a single quotation by ID
- */
-export const getQuotationById = async (req, res) => {
+export const getSearchedQuotationsByName = async (req, res) => {
   try {
-    const quotation = await Quotation.findById(req.params.id).populate("customer");
-    if (!quotation) {
-      return res.status(404).json({ success: false, message: "Quotation not found" });
-    }
-    res.status(200).json({ success: true, quotation });
+    const { query } = req.query;
+
+    const quotations = await Quotation.aggregate([
+      {
+        // Convert quotationNumber (Number) to string so regex works on it
+        $addFields: {
+          quotationNumberStr: { $toString: "$quotationNumber" },
+        },
+      },
+      {
+        $lookup: {
+          from: "customers",
+          localField: "customer",
+          foreignField: "_id",
+          as: "customer",
+        },
+      },
+      { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          $or: [
+            { quotationNumberStr: { $regex: query, $options: "i" } },
+            { "customer.name": { $regex: query, $options: "i" } },
+          ],
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+
+    res.status(200).json({ success: true, quotations });
   } catch (error) {
-    console.error("❌ Error fetching quotation:", error);
+    console.error("❌ Error fetching quotations:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * 🔍 Get quotations by customer name
+ */
+export const getQuotationByName = async (req, res) => {
+  try {
+    const { name } = req.params;
+
+    const quotations = await Quotation.aggregate([
+      {
+        $lookup: {
+          from: "customers",
+          localField: "customer",
+          foreignField: "_id",
+          as: "customer",
+        },
+      },
+      { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          "customer.name": { $regex: name, $options: "i" },
+        },
+      },
+    ]);
+
+    if (!quotations.length) {
+      return res.status(404).json({ success: false, message: "No quotations found for this customer name" });
+    }
+
+    res.status(200).json({ success: true, quotations });
+  } catch (error) {
+    console.error("❌ Error fetching quotation by name:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
