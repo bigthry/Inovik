@@ -75,7 +75,7 @@ const Sidebar = ({ onLogout }) => {
       <div className="sidebar-footer">
         <button className="logout-btn" onClick={handleLogout}>
           <span className="nav-icon"></span>
-          {!isCollapsed && <span className="nav-label">Logout</span>}
+          {!isCollapsed && <span className="nav-label" >Logout</span>}
         </button>
       </div>
     </div>

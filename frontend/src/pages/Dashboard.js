@@ -15,52 +15,53 @@ const Dashboard = ({ onLogout }) => {
     fetchQuotations();
   }, []);
 
- const fetchSearchedQuotations = async (query) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      showError("Authentication required. Please login again.");
-      setTimeout(() => navigate("/"), 2000);
-      return;
-    }
-
-    const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/quotations/search?query=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+  const fetchSearchedQuotations = async (query) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        showError("Authentication required. Please login again.");
+        setTimeout(() => navigate("/"), 2000);
+        return;
       }
-    );
 
-    const data = await response.json();
+      const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to fetch quotations");
+      const response = await fetch(
+        `${API_BASE_URL}/api/quotations/search?query=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Fix #1: check response.ok before parsing JSON
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Failed to fetch quotations");
+      }
+
+      const data = await response.json();
+      setQuotations(data.quotations || []);
+    } catch (error) {
+      console.error("Error fetching quotations:", error);
+      showError("Error loading quotations: " + error.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setQuotations(data.quotations || []);
-  } catch (error) {
-    console.error("Error fetching quotations:", error);
-    showError("Error loading quotations: " + error.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (!searchQuery.trim()) {
+        fetchQuotations();
+      } else {
+        fetchSearchedQuotations(searchQuery);
+      }
+    }, 200);
 
-useEffect(() => {
-  const delay = setTimeout(() => {
-    if (!searchQuery.trim()) {
-      fetchQuotations();   // fallback when cleared
-    } else {
-      fetchSearchedQuotations(searchQuery);
-    }
-  }, 200);
-
-  return () => clearTimeout(delay);
-}, [searchQuery]);
+    return () => clearTimeout(delay);
+  }, [searchQuery]);
 
   const fetchQuotations = async () => {
     try {
@@ -72,18 +73,22 @@ useEffect(() => {
         }, 2000);
         return;
       }
-      const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+
+      const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
       const response = await fetch(`${API_BASE_URL}/api/quotations`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await response.json();
+      // Fix #1: check response.ok before parsing JSON
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch quotations");
+        const text = await response.text();
+        throw new Error(text || "Failed to fetch quotations");
       }
 
+      const data = await response.json();
       setQuotations(data.quotations || []);
     } catch (error) {
       console.error("Error fetching quotations:", error);
@@ -146,9 +151,9 @@ useEffect(() => {
             <button className="action-btn primary" onClick={handleNewQuotation}>
               + New Quotation
             </button>
-            <button className="action-btn secondary" onClick={onLogout}>
+            {/* <button className="action-btn secondary" onClick={onLogout}>
               Logout
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
@@ -161,10 +166,12 @@ useEffect(() => {
           placeholder="Search by customer name"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && fetchSearchedQuotations()}
+          // Fix #2: pass searchQuery as argument
+          onKeyDown={(e) => e.key === "Enter" && fetchSearchedQuotations(searchQuery)}
           style={{ color: "#111827", backgroundColor: "#ffffff" }}
         />
-        <button className="action-btn primary" onClick={fetchSearchedQuotations}>
+        {/* Fix #2: wrap in arrow function and pass searchQuery */}
+        <button className="action-btn primary" onClick={() => fetchSearchedQuotations(searchQuery)}>
           Search
         </button>
         {searchQuery && (
