@@ -6,7 +6,8 @@ import {
   updateQuotation,
   deleteQuotation,
   getSearchedQuotationsByName,
-  getQuotationById
+  getQuotationById,
+  createRevision,
 } from "../controllers/quotationController.js";
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.post("/", createQuotation);
 router.get("/", getAllQuotations);
 router.get("/search", getSearchedQuotationsByName);
 router.get("/name/:name", getQuotationByName);
+router.post("/:id/revise", createRevision);
 router.put("/:id", updateQuotation);
 router.delete("/:id", deleteQuotation);
 router.get("/:id", getQuotationById);

@@ -25,6 +25,9 @@ const quotationSchema = new mongoose.Schema(
     blocks: Array,
     specialDiscount: { type: Number, default: 0 },
     finalProjectValue: { type: Number, default: 0 },
+    isRevision: { type: Boolean, default: false },
+    parentQuotationId: { type: mongoose.Schema.Types.ObjectId, ref: "Quotation", default: null },
+    parentQuotationNumber: { type: Number, default: null },
   },
   { timestamps: true }
 );

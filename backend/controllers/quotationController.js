@@ -234,6 +234,67 @@ export const updateQuotation = async (req, res) => {
 };
 
 /**
+ * Create a revised copy of an existing quotation
+ */
+export const createRevision = async (req, res) => {
+  try {
+    const original = await Quotation.findById(req.params.id);
+    if (!original) {
+      return res.status(404).json({ success: false, message: "Original quotation not found" });
+    }
+
+    // The root parent number (if the original is itself a revision, trace back)
+    const parentQuotationNumber = original.isRevision
+      ? original.parentQuotationNumber
+      : original.quotationNumber;
+    const parentQuotationId = original.isRevision
+      ? original.parentQuotationId
+      : original._id;
+
+    const quotationNumber = await getNextQuotationNumber();
+
+    const {
+      date, status, businessUnit, category, product, quotationType,
+      reference, designer, manager, customer, shippingAddress,
+      remarks, blocks, specialDiscount, finalProjectValue,
+    } = req.body;
+
+    const revision = new Quotation({
+      quotationNumber,
+      date,
+      status,
+      businessUnit,
+      category: category || "",
+      product: product || "",
+      quotationType: quotationType || "",
+      reference: reference || "",
+      designer: designer || "",
+      manager: manager || "",
+      customer: customer || null,
+      shippingAddress: shippingAddress || {},
+      remarks: remarks || "",
+      blocks: blocks || [],
+      specialDiscount: specialDiscount || 0,
+      finalProjectValue: finalProjectValue || 0,
+      isRevision: true,
+      parentQuotationId,
+      parentQuotationNumber,
+    });
+
+    await revision.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Revision created successfully",
+      quotation: revision,
+    });
+  } catch (error) {
+    console.error("❌ Error creating revision:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
  * 🗑️ Delete a quotation
  */
 export const deleteQuotation = async (req, res) => {
