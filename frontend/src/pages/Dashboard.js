@@ -211,9 +211,16 @@ const Dashboard = ({ onLogout }) => {
               </thead>
               <tbody>
                 {quotations.map((quotation) => (
-                  <tr key={quotation._id}>
+                  <tr key={quotation._id} style={quotation.isRevision ? { backgroundColor: "#faf5ff" } : {}}>
                     <td className="quotation-number">
-                      #{quotation.quotationNumber || "N/A"}
+                      {quotation.isRevision && quotation.parentQuotationNumber ? (
+                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ width: 12, display: "inline-block", borderBottom: "2px solid #7c3aed", marginRight: 2 }}></span>
+                          <span style={{ color: "#7c3aed", fontWeight: 600 }}>Revised-{quotation.parentQuotationNumber}</span>
+                        </span>
+                      ) : (
+                        `#${quotation.quotationNumber || "N/A"}`
+                      )}
                     </td>
                     <td>{formatDate(quotation.date)}</td>
                     <td>{quotation.customer?.name || "No customer"}</td>

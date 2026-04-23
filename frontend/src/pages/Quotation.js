@@ -27,6 +27,8 @@ const Quotation = ({ onLogout, mode }) => {
   const [printData, setPrintData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
+  const [isRevision, setIsRevision] = useState(false);
+  const [parentQuotationNumber, setParentQuotationNumber] = useState(null);
 
   const { popups, showSuccess, showError, showWarning, showInfo, hidePopup } = usePopupManager();
 
@@ -136,6 +138,8 @@ const Quotation = ({ onLogout, mode }) => {
       setStatus(quotation.status);
       setBusinessUnit(quotation.businessUnit);
       setSpecialDiscount(quotation.specialDiscount || 0);
+      setIsRevision(quotation.isRevision || false);
+      setParentQuotationNumber(quotation.parentQuotationNumber || null);
       // finalProjectValue is handled in printData below
 
 
@@ -375,6 +379,58 @@ const Quotation = ({ onLogout, mode }) => {
     }
   };
 
+  const handleSaveAsRevised = async () => {
+    if (!id) {
+      showError("Save the quotation first before creating a revision.");
+      return;
+    }
+    if (!blocksRef.current || !customerRef.current) {
+      showError("Sections not ready. Please try again.");
+      return;
+    }
+
+    const blocksData = blocksRef.current.getBlocks() || [];
+    const customerDataRaw = customerRef.current.getCustomerData() || {};
+
+    const quotationPayload = {
+      date,
+      status,
+      businessUnit,
+      category: customerDataRaw.category || "",
+      product: customerDataRaw.product || "",
+      quotationType: customerDataRaw.quotationType || "",
+      reference: customerDataRaw.reference || "",
+      designer: customerDataRaw.designer || "",
+      manager: customerDataRaw.manager || "",
+      customer: customerDataRaw.customer || null,
+      shippingAddress: customerDataRaw.shippingAddress || {},
+      remarks: customerDataRaw.remarks || "",
+      specialDiscount: Number(specialDiscount) || 0,
+      finalProjectValue: Math.max(0, totalProjectValue - Number(specialDiscount || 0)),
+      blocks: blocksData,
+    };
+
+    const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/quotations/${id}/revise`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(quotationPayload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || "Failed to create revision");
+
+      showSuccess("Revision created successfully!");
+      navigate(`/quotation/${data.quotation._id}?mode=edit`, { replace: false });
+    } catch (err) {
+      showError("Error creating revision: " + err.message);
+    }
+  };
+
   const handleTestPDF = () => {
     console.log("=== TEST PDF WITH SAMPLE DATA ===");
     const sampleData = {
@@ -559,8 +615,8 @@ const Quotation = ({ onLogout, mode }) => {
         <div className="left-header">
           <button className="save-btn" onClick={handleHome}>Home</button>
           {!isViewMode && <button className="save-btn" onClick={handleSave}>Save</button>}
+          {!isViewMode && id && <button className="save-btn" style={{ backgroundColor: "#7c3aed" }} onClick={handleSaveAsRevised}>Save as Revised</button>}
           <button className="save-btn" onClick={handleDownloadPDF}>Download PDF</button>
-          {/* <button className="save-btn" onClick={handleTestSave} style={{ backgroundColor: "#10b981" }}>Test Save</button> */}
         </div>
 
         <div className="right-header">
@@ -572,7 +628,11 @@ const Quotation = ({ onLogout, mode }) => {
           <div className="header-row">
             <div className="header-field">
               <label># Quotation:</label>
-              <span className="quotation-number">{quotationNumber || "Will be generated on save"}</span>
+              <span className="quotation-number">
+                {isRevision && parentQuotationNumber
+                  ? `Revised-${parentQuotationNumber}`
+                  : quotationNumber || "Will be generated on save"}
+              </span>
             </div>
 
             <div className="header-field">
@@ -703,6 +763,7 @@ const Quotation = ({ onLogout, mode }) => {
 
       <div className="bottom-actions">
         {!isViewMode && <button className="save-btn" onClick={handleSave}>Save</button>}
+        {!isViewMode && id && <button className="save-btn" style={{ backgroundColor: "#7c3aed" }} onClick={handleSaveAsRevised}>Save as Revised</button>}
         <button className="save-btn" onClick={handleDownloadPDF}>Download PDF</button>
       </div>
 
