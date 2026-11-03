@@ -32,4 +32,7 @@ const quotationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Lets the dashboard sort newest-first without a blocking in-memory sort
+quotationSchema.index({ createdAt: -1 });
+
 export default mongoose.model("Quotation", quotationSchema);

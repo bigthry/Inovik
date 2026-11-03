@@ -112,6 +112,7 @@ export const createQuotation = async (req, res) => {
 export const getAllQuotations = async (req, res) => {
   try {
     const quotations = await Quotation.find()
+      .select("-blocks") // list view doesn't use them and they can be huge
       .populate("customer") // optional — include customer details
       .sort({ createdAt: -1 }); // newest first
     res.status(200).json({ success: true, quotations });
@@ -139,6 +140,7 @@ export const getSearchedQuotationsByName = async (req, res) => {
     const { query } = req.query;
 
     const quotations = await Quotation.aggregate([
+      { $project: { blocks: 0 } }, // $sort below can't use an index, so keep documents small
       {
         // Convert quotationNumber (Number) to string so regex works on it
         $addFields: {
